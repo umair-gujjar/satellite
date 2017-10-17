@@ -55,7 +55,7 @@ func (r *portCollector) tcp() (ret []process, err error) {
 
 	for _, socket := range append(sockets, sockets6...) {
 		proc, err := r.findProcessByInode(socket.inode())
-		if err != nil {
+		if err != nil && !trace.IsNotFound(err) {
 			log.Warn(err.Error())
 		}
 		ret = append(ret, process{
@@ -308,7 +308,7 @@ func mapAllProcs(procs []procfs.Proc) (inodes map[string]pid, err error) {
 	for _, proc := range procs {
 		err = mapPidToInode(pid(proc.PID), inodes)
 		if err != nil {
-			log.Warnf("failed to associate sockets with process %v: %v", proc.PID, err)
+			log.Debugf("failed to associate sockets with process %v: %v", proc.PID, err)
 			continue
 		}
 	}
