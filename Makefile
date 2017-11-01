@@ -79,5 +79,5 @@ buildbox-grpc:
 # standard GRPC output
 	echo $$PROTO_INCLUDE
 	cd $(GRPC_API) && protoc -I=.:$$PROTO_INCLUDE \
-      --gofast_out=plugins=grpc:.\
-    *.proto
+		--gofast_out=plugins=grpc,Mgoogle/protobuf/empty.proto=github.com/gogo/protobuf/types:. \
+		*.proto

@@ -237,7 +237,7 @@ func (r *agent) IsMember() bool {
 		return false
 	}
 	// if we're the only one, consider that we're not in the cluster yet
-	// (cause more often than not there are more than 1 member)
+	// (because more often than not there are more than 1 member)
 	if len(members) == 1 && members[0].Name == r.name {
 		return false
 	}

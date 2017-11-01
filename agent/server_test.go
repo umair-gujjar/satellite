@@ -363,6 +363,10 @@ func (r *testSerfClient) Join(peers []string, replay bool) (int, error) {
 	return 0, nil
 }
 
+func (r *testSerfClient) ForceLeave(string) error {
+	return nil
+}
+
 func newTestCache(c *C, clock clockwork.Clock) *testCache {
 	if clock == nil {
 		clock = clockwork.NewFakeClock()

@@ -36,4 +36,6 @@ type serfClient interface {
 	// Join attempts to join an existing serf cluster identified by peers.
 	// Replay controls if previous user events are replayed once this node has joined the cluster.
 	Join(peers []string, replay bool) (int, error)
+	// ForceLeave is used to ask the agent to issue a leave command for the given node
+	ForceLeave(node string) error
 }

@@ -23,6 +23,7 @@ import (
 
 	pb "github.com/gravitational/satellite/agent/proto/agentpb"
 
+	"github.com/gogo/protobuf/types"
 	"github.com/gravitational/roundtrip"
 	"github.com/gravitational/trace"
 	serf "github.com/hashicorp/serf/client"
@@ -36,8 +37,13 @@ const RPCPort = 7575 // FIXME: use serf to discover agents
 
 // RPCServer is the interface that defines the interaction with an agent via RPC.
 type RPCServer interface {
+	// Status reports the health status of a serf cluster.
 	Status(context.Context, *pb.StatusRequest) (*pb.StatusResponse, error)
+	// LocalStatus reports the health status of the local serf cluster node.
 	LocalStatus(context.Context, *pb.LocalStatusRequest) (*pb.LocalStatusResponse, error)
+	// RemoveNode removes the specified node from the cluster
+	RemoveNode(context.Context, *pb.RemoveNodeRequest) (*types.Empty, error)
+	// Stop stops the server
 	Stop()
 }
 
@@ -67,6 +73,16 @@ func (r *server) LocalStatus(ctx context.Context, req *pb.LocalStatusRequest) (r
 	resp.Status = r.agent.recentLocalStatus()
 
 	return resp, nil
+}
+
+// RemoveNode removes the specified node from the serf cluster
+func (r *server) RemoveNode(ctx context.Context, req *pb.RemoveNodeRequest) (resp *types.Empty, err error) {
+	err = r.agent.serfClient.ForceLeave(req.Name)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return &types.Empty{}, nil
 }
 
 // newRPCServer creates an agent RPC endpoint for each provided listener.

@@ -31,6 +31,8 @@ type Client interface {
 	Status(context.Context) (*pb.SystemStatus, error)
 	// LocalStatus reports the health status of the local serf cluster node.
 	LocalStatus(context.Context) (*pb.NodeStatus, error)
+	// RemoveNode removes the specified node from the cluster
+	RemoveNode(ctx context.Context, node string) error
 }
 
 type client struct {
@@ -83,6 +85,19 @@ func (r *client) LocalStatus(ctx context.Context) (*pb.NodeStatus, error) {
 		return nil, ConvertGRPCError(err)
 	}
 	return resp.Status, nil
+}
+
+// RemoveNode removes the specified node from the serf cluster
+func (r *client) RemoveNode(ctx context.Context, node string) error {
+	opts := []grpc.CallOption{
+		grpc.FailFast(false),
+	}
+	req := pb.RemoveNodeRequest{Name: node}
+	_, err := r.AgentClient.RemoveNode(ctx, &req, opts...)
+	if err != nil {
+		return ConvertGRPCError(err)
+	}
+	return nil
 }
 
 // Close closes the RPC client connection.
