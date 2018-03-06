@@ -49,18 +49,30 @@ type Reporter interface {
 	Add(probe *pb.Probe)
 	// Status retrieves the collected status after executing all checks.
 	GetProbes() []*pb.Probe
+	// NumProbes returns the number of probes this reporter contains
+	NumProbes() int
 }
 
 // Probes is a list of probes.
 // It implements the Reporter interface.
 type Probes []*pb.Probe
 
+// Add adds an health probe for a specific node.
+// Implements Reporter
 func (r *Probes) Add(probe *pb.Probe) {
 	*r = append(*r, probe)
 }
 
+// Status retrieves the collected status after executing all checks.
+// Implements Reporter
 func (r Probes) GetProbes() []*pb.Probe {
 	return []*pb.Probe(r)
+}
+
+// NumProbes returns the number of probes this reporter contains
+// Implements Reporter
+func (r Probes) NumProbes() int {
+	return len(r)
 }
 
 // GetFailed returns all probes that reported an error

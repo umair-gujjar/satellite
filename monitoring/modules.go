@@ -19,6 +19,7 @@ package monitoring
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -46,10 +47,15 @@ func (r kernelModuleChecker) Name() string {
 // Check determines if the modules specified with r.Modules have been loaded
 func (r kernelModuleChecker) Check(ctx context.Context, reporter health.Reporter) {
 	err := r.check(ctx, reporter)
-	if err != nil {
-		reporter.Add(NewProbeFromErr(r.Name(), "", trace.Wrap(err)))
+	if err != nil && !trace.IsNotFound(err) {
+		reporter.Add(NewProbeFromErr(r.Name(), "failed to validate kernel modules", trace.Wrap(err)))
 		return
 	}
+
+	if reporter.NumProbes() != 0 {
+		return
+	}
+
 	reporter.Add(&pb.Probe{Checker: r.Name(), Status: pb.Probe_Running})
 }
 
@@ -59,17 +65,17 @@ func (r kernelModuleChecker) check(ctx context.Context, reporter health.Reporter
 		return trace.Wrap(err)
 	}
 
-	var errors []error
 	for _, module := range r.Modules {
 		if !modules.WasLoaded(module) {
-			errors = append(errors, trace.NotFound("kernel module %q not loaded", module))
+			reporter.Add(&pb.Probe{
+				Checker: r.Name(),
+				Detail:  fmt.Sprintf("kernel module %q not loaded", module),
+				Status:  pb.Probe_Failed,
+			})
 		}
 	}
 
-	if len(errors) == 1 {
-		return trace.Wrap(errors[0])
-	}
-	return trace.NewAggregate(errors...)
+	return nil
 }
 
 // kernelModuleChecker checks if the specified set of kernel modules are loaded
