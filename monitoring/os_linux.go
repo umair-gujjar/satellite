@@ -50,8 +50,13 @@ import (
 func NewOSChecker(releases ...OSRelease) health.Checker {
 	return &osReleaseChecker{
 		Releases:   releases,
-		getRelease: getRealOSRelease,
+		getRelease: GetRealOSRelease,
 	}
+}
+
+// GetRealOSRelease deteremins the OS distribution release information
+func GetRealOSRelease() (info *OSRelease, err error) {
+	return getOSReleaseFromFiles(releases, versions)
 }
 
 // osReleaseChecker validates host OS based on
@@ -106,10 +111,6 @@ type OSRelease struct {
 // Name returns a name/version for this OS info, e.g. "centos 7.1"
 func (r OSRelease) Name() string {
 	return fmt.Sprintf("%v %v", r.ID, r.VersionID)
-}
-
-func getRealOSRelease() (info *OSRelease, err error) {
-	return getOSReleaseFromFiles(releases, versions)
 }
 
 func getOSReleaseFromFiles(releases, versions []string) (info *OSRelease, err error) {

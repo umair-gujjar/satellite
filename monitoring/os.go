@@ -33,3 +33,10 @@ type OSRelease struct {
 	// VersionID is the release version i.e. 16.04 for Ubuntu
 	VersionID string
 }
+
+// GetRealOSRelease deteremins the OS distribution release information.
+//
+// It only supports Linux.
+func GetRealOSRelease() (*OSRelease, error) {
+	return nil, trace.BadParameter("not implemented")
+}
