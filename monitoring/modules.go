@@ -46,17 +46,19 @@ func (r kernelModuleChecker) Name() string {
 
 // Check determines if the modules specified with r.Modules have been loaded
 func (r kernelModuleChecker) Check(ctx context.Context, reporter health.Reporter) {
-	err := r.check(ctx, reporter)
+	var probes health.Probes
+	err := r.check(ctx, &probes)
 	if err != nil && !trace.IsNotFound(err) {
 		reporter.Add(NewProbeFromErr(r.Name(), "failed to validate kernel modules", trace.Wrap(err)))
 		return
 	}
 
-	if reporter.NumProbes() != 0 {
+	health.AddFrom(reporter, &probes)
+	if probes.NumProbes() != 0 {
 		return
 	}
 
-	reporter.Add(&pb.Probe{Checker: r.Name(), Status: pb.Probe_Running})
+	reporter.Add(NewSuccessProbe(r.Name()))
 }
 
 func (r kernelModuleChecker) check(ctx context.Context, reporter health.Reporter) error {

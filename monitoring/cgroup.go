@@ -22,7 +22,6 @@ import (
 	"strings"
 
 	"github.com/gravitational/satellite/agent/health"
-	pb "github.com/gravitational/satellite/agent/proto/agentpb"
 	"github.com/gravitational/satellite/utils"
 
 	"github.com/gravitational/trace"
@@ -54,15 +53,19 @@ func (r cgroupChecker) Name() string {
 // Check verifies existence of cgroup mounts given in r.cgroups.
 // Implements health.Checker
 func (r cgroupChecker) Check(ctx context.Context, reporter health.Reporter) {
-	err := r.check(ctx, reporter)
+	var probes health.Probes
+	err := r.check(ctx, &probes)
 	if err != nil && !trace.IsNotFound(err) {
 		reporter.Add(NewProbeFromErr(r.Name(), "failed to validate cgroup mounts", err))
 		return
 	}
-	if reporter.NumProbes() != 0 {
+
+	health.AddFrom(reporter, &probes)
+	if probes.NumProbes() != 0 {
 		return
 	}
-	reporter.Add(&pb.Probe{Checker: r.Name(), Status: pb.Probe_Running})
+
+	reporter.Add(NewSuccessProbe(r.Name()))
 }
 
 func (r cgroupChecker) check(ctx context.Context, reporter health.Reporter) error {

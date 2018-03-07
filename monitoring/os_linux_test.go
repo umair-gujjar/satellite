@@ -57,8 +57,8 @@ func (*MonitoringSuite) TestValidatesOS(c *C) {
 			getRelease: testGetOSRelease(OSRelease{ID: "debian", VersionID: "9.3"}),
 			probes: health.Probes{&pb.Probe{
 				Checker: osCheckerID,
-				Status:  pb.Probe_Failed,
 				Detail:  "debian 9.3 is not supported",
+				Status:  pb.Probe_Failed,
 			}},
 			comment: "missing requirement",
 		},

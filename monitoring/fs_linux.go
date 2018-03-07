@@ -48,15 +48,19 @@ func (r dtypeChecker) Name() string {
 
 // Check determines if the filesystem mounted on r supports d_type
 func (r dtypeChecker) Check(ctx context.Context, reporter health.Reporter) {
-	if err := r.check(ctx, reporter); err != nil {
+	var probes health.Probes
+	if err := r.check(ctx, &probes); err != nil {
 		reporter.Add(NewProbeFromErr(r.Name(),
 			"failed to determine d_type support in filesystem", err))
 		return
 	}
-	if reporter.NumProbes() != 0 {
+
+	health.AddFrom(reporter, &probes)
+	if probes.NumProbes() != 0 {
 		return
 	}
-	reporter.Add(&pb.Probe{Checker: r.Name(), Status: pb.Probe_Running})
+
+	reporter.Add(NewSuccessProbe(r.Name()))
 }
 
 func (r dtypeChecker) check(ctx context.Context, reporter health.Reporter) error {

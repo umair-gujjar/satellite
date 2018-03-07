@@ -59,17 +59,21 @@ func (c *hostChecker) Name() string {
 	return hostCheckerID
 }
 
-// Check validates that the host has enough RAM/CPUs.
+// Check validates that the host has enough RAM/CPU.
 // Implements health.Checker
 func (c *hostChecker) Check(ctx context.Context, reporter health.Reporter) {
-	err := c.check(ctx, reporter)
+	var probes health.Probes
+	err := c.check(ctx, &probes)
 	if err != nil && !trace.IsNotFound(err) {
 		reporter.Add(NewProbeFromErr(c.Name(), "failed to validate host environment", err))
 		return
 	}
-	if reporter.NumProbes() != 0 {
+
+	health.AddFrom(reporter, &probes)
+	if probes.NumProbes() != 0 {
 		return
 	}
+
 	reporter.Add(NewSuccessProbe(c.Name()))
 }
 
@@ -82,7 +86,7 @@ func (c *hostChecker) check(ctx context.Context, reporter health.Reporter) error
 	if mem.Total < c.MinRAMBytes {
 		reporter.Add(&pb.Probe{
 			Checker: c.Name(),
-			Detail: fmt.Sprintf("at least %s of RAM required, only %s are available",
+			Detail: fmt.Sprintf("at least %s of RAM required, only %s available",
 				humanize.Bytes(c.MinRAMBytes), humanize.Bytes(mem.Total)),
 			Status: pb.Probe_Failed,
 		})
@@ -91,7 +95,7 @@ func (c *hostChecker) check(ctx context.Context, reporter health.Reporter) error
 	if c.getCPU() < c.MinCPU {
 		reporter.Add(&pb.Probe{
 			Checker: c.Name(),
-			Detail: fmt.Sprintf("at least %d CPUs required, only %d are available",
+			Detail: fmt.Sprintf("at least %d CPUs required, only %d available",
 				c.MinCPU, c.getCPU()),
 			Status: pb.Probe_Failed,
 		})

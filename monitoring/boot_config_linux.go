@@ -66,17 +66,18 @@ func (c *bootConfigParamChecker) Name() string {
 
 // Check parses boot config files and validates whether parameters provided are set
 func (c *bootConfigParamChecker) Check(ctx context.Context, reporter health.Reporter) {
-	if err := c.check(ctx, reporter); err != nil {
+	var probes health.Probes
+	if err := c.check(ctx, &probes); err != nil {
 		reporter.Add(NewProbeFromErr(c.Name(), "failed to validate boot configuration", err))
 		return
 	}
-	if reporter.NumProbes() != 0 {
+
+	health.AddFrom(reporter, &probes)
+	if probes.NumProbes() != 0 {
 		return
 	}
-	reporter.Add(&pb.Probe{
-		Checker: bootConfigParamID,
-		Status:  pb.Probe_Running,
-	})
+
+	reporter.Add(NewSuccessProbe(bootConfigParamID))
 }
 
 // GetStorageDriverBootConfigParams returns config params required for a given filesystem

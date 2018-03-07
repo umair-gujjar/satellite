@@ -74,13 +74,18 @@ func (c *osReleaseChecker) Name() string {
 
 // Check checks current OS and release is within supported list
 func (c *osReleaseChecker) Check(ctx context.Context, reporter health.Reporter) {
-	err := c.check(ctx, reporter)
+	var probes health.Probes
+	err := c.check(ctx, &probes)
 	if err != nil && !trace.IsNotFound(err) {
 		reporter.Add(NewProbeFromErr(c.Name(), "failed to validate OS distribution", err))
-	}
-	if reporter.NumProbes() != 0 {
 		return
 	}
+
+	health.AddFrom(reporter, &probes)
+	if probes.NumProbes() != 0 {
+		return
+	}
+
 	reporter.Add(NewSuccessProbe(c.Name()))
 }
 

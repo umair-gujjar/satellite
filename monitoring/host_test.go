@@ -50,12 +50,12 @@ func (*MonitoringSuite) TestValidatesHostEnviron(c *C) {
 			probes: health.Probes{
 				&pb.Probe{
 					Checker: hostCheckerID,
-					Detail:  "at least 1.0 kB of RAM required, only 512 B are available",
+					Detail:  "at least 1.0 kB of RAM required, only 512 B available",
 					Status:  pb.Probe_Failed,
 				},
 				&pb.Probe{
 					Checker: hostCheckerID,
-					Detail:  "at least 4 CPUs required, only 2 are available",
+					Detail:  "at least 4 CPUs required, only 2 available",
 					Status:  pb.Probe_Failed,
 				},
 			},
